@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { DeckTrack, MashupPreset } from '../types/dj';
 import { MASHUP_PRESETS, POPULAR_TRACKS } from '../data/presets';
 import { extractYouTubeId } from '../services/youtube';
@@ -24,6 +24,36 @@ export const CrateModal: React.FC<CrateModalProps> = ({
   const [activeTab, setActiveTab] = useState<'presets' | 'tracks' | 'custom'>('presets');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedGenre, setSelectedGenre] = useState<string>('all');
+  const [liveYtResults, setLiveYtResults] = useState<DeckTrack[]>([]);
+  const [isSearchingYt, setIsSearchingYt] = useState(false);
+
+  // Debounced search via youtube-dl backend
+  useEffect(() => {
+    if (!searchQuery.trim() || searchQuery.length < 2) {
+      setLiveYtResults([]);
+      setIsSearchingYt(false);
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      try {
+        setIsSearchingYt(true);
+        const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.results)) {
+            setLiveYtResults(data.results);
+          }
+        }
+      } catch (err) {
+        console.warn('Crate live search failed', err);
+      } finally {
+        setIsSearchingYt(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Custom YouTube input states
   const [customUrl, setCustomUrl] = useState('');
@@ -254,6 +284,66 @@ export const CrateModal: React.FC<CrateModalProps> = ({
 
             {/* Track List */}
             <div className="flex flex-col gap-2">
+              {/* Live YouTube Results via youtube-dl backend */}
+              {liveYtResults.length > 0 && (
+                <div className="flex flex-col gap-2 mb-2 pb-2 border-b border-neutral-800">
+                  <div className="text-[10px] font-mono uppercase tracking-widest text-amber-400 font-bold px-1 flex items-center justify-between">
+                    <span>Live YouTube Results (via youtube-dl extractor)</span>
+                    <span>{liveYtResults.length} matches</span>
+                  </div>
+                  {liveYtResults.map(track => (
+                    <div
+                      key={track.id}
+                      className="bg-neutral-950 rounded-lg border border-amber-500/30 p-2.5 flex items-center justify-between gap-3 hover:border-amber-400 transition-colors shadow-sm"
+                    >
+                      <div className="flex items-center gap-3 min-w-0">
+                        <img
+                          src={track.thumbnailUrl}
+                          alt={track.title}
+                          className="w-12 h-12 rounded object-cover border border-neutral-800 shrink-0"
+                        />
+                        <div className="min-w-0">
+                          <h4 className="text-xs sm:text-sm font-bold text-white truncate font-mono">
+                            {track.title}
+                          </h4>
+                          <p className="text-xs text-neutral-400 truncate">
+                            {track.artist}
+                          </p>
+                          <div className="flex items-center gap-2 text-[10px] font-mono text-neutral-500 mt-0.5">
+                            <span className="text-amber-400 font-semibold">{track.bpm} BPM</span>
+                            <span>·</span>
+                            <span>{track.key}</span>
+                            <span>·</span>
+                            <span className="text-neutral-400">YouTube Video</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => {
+                            onLoadTrackToDeck('A', track);
+                            onClose();
+                          }}
+                          className="px-2.5 py-1.5 rounded text-xs font-mono font-bold uppercase bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 border border-cyan-500/40 active:scale-95 transition-all"
+                        >
+                          + DECK A
+                        </button>
+                        <button
+                          onClick={() => {
+                            onLoadTrackToDeck('B', track);
+                            onClose();
+                          }}
+                          className="px-2.5 py-1.5 rounded text-xs font-mono font-bold uppercase bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/40 active:scale-95 transition-all"
+                        >
+                          + DECK B
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {filteredTracks.map(track => (
                 <div
                   key={track.id}
