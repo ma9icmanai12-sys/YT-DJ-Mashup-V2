@@ -2,16 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { DeckTrack } from '../types/dj';
 import { getCurrentLyricLine, TRACK_LYRICS } from '../data/lyrics';
 import {
-  Layers,
   Maximize2,
   Sparkles,
   Subtitles,
   Split,
-  Sliders,
-  Type,
   Edit3,
   X,
-  Volume2,
+  Tv,
 } from 'lucide-react';
 
 interface TopMashupVideoStageProps {
@@ -29,7 +26,7 @@ interface TopMashupVideoStageProps {
   loopBActive: boolean;
 }
 
-export type BlendVisualMode = 'screen' | 'alpha' | 'side-by-side' | 'split';
+export type BlendVisualMode = 'side-by-side' | 'screen' | 'alpha' | 'focus-a' | 'focus-b';
 
 export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
   trackA,
@@ -45,13 +42,12 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
   loopAActive,
   loopBActive,
 }) => {
-  const [blendMode, setBlendMode] = useState<BlendVisualMode>('screen');
+  const [blendMode, setBlendMode] = useState<BlendVisualMode>('side-by-side');
   const [showCc, setShowCc] = useState<boolean>(true);
-  const [ccLead, setCcLead] = useState<'auto' | 'deckA' | 'deckB'>('auto');
   const [isLyricsModalOpen, setIsLyricsModalOpen] = useState(false);
   const [customLyricInput, setCustomLyricInput] = useState('');
 
-  // Audio frequency simulation
+  // Audio frequency simulation for the center mashup bridge
   const [audioWaves, setAudioWaves] = useState<number[]>([40, 65, 80, 55, 70, 90, 60, 45]);
 
   useEffect(() => {
@@ -95,7 +91,6 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
     const targetVideoId = (trackA && trackA.videoId) || (trackB && trackB.videoId);
     if (!targetVideoId) return;
 
-    // Parse simple line-by-line format or plain text
     const lines = customLyricInput.split('\n').filter(Boolean).map((line, idx) => ({
       time: idx * 4,
       text: line.trim(),
@@ -119,14 +114,35 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
           </div>
 
           <span className="hidden sm:inline text-[11px] font-mono text-neutral-400">
-            {blendMode === 'screen' ? 'Screen Blend (Additive Lighting)' : blendMode === 'alpha' ? 'Alpha Dissolve' : blendMode === 'split' ? 'Split Wipe' : 'Dual Cinema'}
+            {blendMode === 'side-by-side'
+              ? 'Dual Cinema (Production Streams)'
+              : blendMode === 'screen'
+              ? 'Screen Blend (Additive Lighting)'
+              : blendMode === 'alpha'
+              ? 'Alpha Dissolve'
+              : blendMode === 'focus-a'
+              ? 'Deck A Focus'
+              : 'Deck B Focus'}
           </span>
         </div>
 
         {/* Action Controls & Mode Selector */}
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Blend Mode Switcher */}
+          {/* Mode Switcher */}
           <div className="flex items-center p-0.5 bg-neutral-950 border border-neutral-800 rounded-lg text-xs font-mono">
+            <button
+              onClick={() => setBlendMode('side-by-side')}
+              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
+                blendMode === 'side-by-side'
+                  ? 'bg-neutral-800 text-white font-bold'
+                  : 'text-neutral-400 hover:text-white'
+              }`}
+              title="Dual Screen Side-by-Side Widescreen"
+            >
+              <Split className="w-3 h-3" />
+              <span>Dual Screen</span>
+            </button>
+
             <button
               onClick={() => setBlendMode('screen')}
               className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
@@ -134,7 +150,7 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
                   ? 'bg-amber-500 text-black font-bold shadow-sm'
                   : 'text-neutral-400 hover:text-white'
               }`}
-              title="Screen Blend: Merges concert visuals, lights, and performers additively!"
+              title="Screen Blend: Merges concert visuals, lights, and performers additively"
             >
               <Sparkles className="w-3 h-3" />
               <span>Screen Blend</span>
@@ -153,28 +169,27 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
             </button>
 
             <button
-              onClick={() => setBlendMode('split')}
-              className={`px-2.5 py-1 rounded transition-colors flex items-center gap-1 ${
-                blendMode === 'split'
-                  ? 'bg-neutral-800 text-white font-bold'
-                  : 'text-neutral-400 hover:text-white'
+              onClick={() => setBlendMode('focus-a')}
+              className={`px-2 py-1 rounded transition-colors text-[10px] ${
+                blendMode === 'focus-a'
+                  ? 'bg-cyan-900 text-cyan-300 font-bold'
+                  : 'text-neutral-500 hover:text-neutral-300'
               }`}
-              title="Split Wipe: Dynamic diagonal split cut"
+              title="Focus on Deck A Video"
             >
-              <Split className="w-3 h-3" />
-              <span>Split</span>
+              Deck A
             </button>
 
             <button
-              onClick={() => setBlendMode('side-by-side')}
-              className={`px-2.5 py-1 rounded transition-colors ${
-                blendMode === 'side-by-side'
-                  ? 'bg-neutral-800 text-white font-bold'
-                  : 'text-neutral-400 hover:text-white'
+              onClick={() => setBlendMode('focus-b')}
+              className={`px-2 py-1 rounded transition-colors text-[10px] ${
+                blendMode === 'focus-b'
+                  ? 'bg-amber-900 text-amber-300 font-bold'
+                  : 'text-neutral-500 hover:text-neutral-300'
               }`}
-              title="Side-by-Side Dual Widescreen"
+              title="Focus on Deck B Video"
             >
-              Dual
+              Deck B
             </button>
           </div>
 
@@ -205,165 +220,113 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
           <button
             onClick={toggleFullscreen}
             className="p-1.5 rounded-lg text-neutral-400 hover:text-white bg-neutral-950 border border-neutral-800 hover:border-neutral-700 transition-colors"
-            title="Toggle Fullscreen Mashup Screen"
+            title="Toggle Fullscreen Stage"
           >
             <Maximize2 className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
 
-      {/* Main Mashup Video Projection Stage */}
+      {/* Main Video Presentation Stage with Real Embedded YouTube Players */}
       <div className="w-full relative aspect-video sm:h-72 lg:h-80 rounded-xl overflow-hidden bg-black border border-neutral-800 shadow-2xl flex items-center justify-center select-none">
-        {/* Background Visual Grid Lines */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-900/60 via-black to-black pointer-events-none" />
+        {/* Real YouTube Players Layer */}
+        <div
+          className={`w-full h-full relative ${
+            blendMode === 'side-by-side' ? 'grid grid-cols-1 md:grid-cols-2 gap-1.5 p-1 bg-black' : 'relative'
+          }`}
+        >
+          {/* DECK A REAL YOUTUBE PLAYER CONTAINER */}
+          <div
+            className={`overflow-hidden rounded-lg bg-black relative transition-all duration-150 ${
+              blendMode === 'side-by-side'
+                ? 'w-full h-full border border-cyan-500/40'
+                : blendMode === 'focus-a'
+                ? 'absolute inset-0 z-10'
+                : blendMode === 'focus-b'
+                ? 'absolute inset-0 z-0 opacity-0 pointer-events-none'
+                : 'absolute inset-0 z-0'
+            }`}
+            style={{
+              opacity: blendMode === 'alpha' ? Math.max(0.08, 1 - pos) : 1,
+            }}
+          >
+            {/* The Real YouTube Player for Deck A */}
+            <div id="deck-a-player" className="w-full h-full pointer-events-auto" />
 
-        {/* VIEW 1: SCREEN BLEND MASHUP (Concert Lights & Performers Merged) */}
-        {blendMode === 'screen' && (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
-            {/* Video Layer A (Base) */}
-            {trackA?.thumbnailUrl && (
-              <div
-                className="absolute inset-0 transition-opacity duration-150 flex items-center justify-center overflow-hidden"
-                style={{ opacity: Math.max(0.15, 1 - pos * 0.75) }}
-              >
-                <img
-                  src={trackA.thumbnailUrl}
-                  alt={trackA.title}
-                  className={`w-full h-full object-cover filter contrast-125 saturate-150 ${isPlayingA ? 'animate-pulse' : ''}`}
-                />
-                <div className="absolute inset-0 bg-cyan-950/20 mix-blend-color" />
-              </div>
-            )}
-
-            {/* Video Layer B (Screened on top of A) */}
-            {trackB?.thumbnailUrl && (
-              <div
-                className="absolute inset-0 transition-opacity duration-150 flex items-center justify-center overflow-hidden mix-blend-screen"
-                style={{ opacity: Math.max(0.15, pos * 0.75 + 0.25) }}
-              >
-                <img
-                  src={trackB.thumbnailUrl}
-                  alt={trackB.title}
-                  className={`w-full h-full object-cover filter contrast-150 saturate-150 brightness-110 ${isPlayingB ? 'animate-pulse' : ''}`}
-                />
-                <div className="absolute inset-0 bg-amber-950/30 mix-blend-color" />
-              </div>
-            )}
-
-            {/* Stage Light Flare Overlay in center */}
-            <div
-              className="absolute inset-0 pointer-events-none mix-blend-color-dodge opacity-40"
-              style={{
-                background: `radial-gradient(circle at ${pos * 100}% 50%, rgba(245,158,11,0.5) 0%, rgba(6,182,212,0.5) 40%, transparent 70%)`,
-              }}
-            />
-          </div>
-        )}
-
-        {/* VIEW 2: ALPHA DISSOLVE */}
-        {blendMode === 'alpha' && (
-          <div className="absolute inset-0 w-full h-full flex items-center justify-center overflow-hidden">
-            {trackA?.thumbnailUrl && (
-              <div
-                className="absolute inset-0 transition-opacity duration-100 flex items-center justify-center overflow-hidden"
-                style={{ opacity: 1 - pos }}
-              >
-                <img
-                  src={trackA.thumbnailUrl}
-                  alt={trackA.title}
-                  className="w-full h-full object-cover filter contrast-125 saturate-125"
-                />
-              </div>
-            )}
-
-            {trackB?.thumbnailUrl && (
-              <div
-                className="absolute inset-0 transition-opacity duration-100 flex items-center justify-center overflow-hidden"
-                style={{ opacity: pos }}
-              >
-                <img
-                  src={trackB.thumbnailUrl}
-                  alt={trackB.title}
-                  className="w-full h-full object-cover filter contrast-125 saturate-125"
-                />
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* VIEW 3: SPLIT WIPE */}
-        {blendMode === 'split' && (
-          <div className="absolute inset-0 w-full h-full grid grid-cols-2 overflow-hidden">
-            {/* Left side Deck A */}
-            <div className="relative w-full h-full overflow-hidden border-r border-amber-400/60 shadow-lg">
-              {trackA?.thumbnailUrl ? (
-                <img
-                  src={trackA.thumbnailUrl}
-                  alt={trackA.title}
-                  className="w-full h-full object-cover filter contrast-125"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-950" />
+            {/* Deck A HUD Banner */}
+            <div className="absolute top-2 left-2 z-10 pointer-events-none flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-black/80 backdrop-blur border border-cyan-500/50 text-cyan-400">
+                DECK A {isPlayingA ? '· LIVE' : '· IDLE'}
+              </span>
+              {loopAActive && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/80 border border-purple-500/50 text-purple-300">
+                  LOOP ON
+                </span>
               )}
             </div>
 
-            {/* Right side Deck B */}
-            <div className="relative w-full h-full overflow-hidden">
-              {trackB?.thumbnailUrl ? (
-                <img
-                  src={trackB.thumbnailUrl}
-                  alt={trackB.title}
-                  className="w-full h-full object-cover filter contrast-125"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-950" />
-              )}
+            {/* Deck A Bottom Track Info Tag */}
+            <div className="absolute bottom-2 inset-x-2 z-10 pointer-events-none flex items-center justify-between bg-black/80 backdrop-blur px-2 py-1 rounded border border-neutral-800 text-[10px] font-mono">
+              <span className="text-white font-bold truncate max-w-[70%]">
+                {trackA ? trackA.title : 'Deck A Empty'}
+              </span>
+              <span className="text-cyan-400 shrink-0 font-semibold">
+                {bpmA.toFixed(1)} BPM
+              </span>
             </div>
           </div>
-        )}
 
-        {/* VIEW 4: SIDE-BY-SIDE DUAL CINEMA */}
-        {blendMode === 'side-by-side' && (
-          <div className="absolute inset-0 w-full h-full grid grid-cols-2 gap-1 p-1 bg-black">
-            <div className="relative w-full h-full rounded-lg overflow-hidden border border-cyan-500/40">
-              {trackA?.thumbnailUrl ? (
-                <img
-                  src={trackA.thumbnailUrl}
-                  alt={trackA.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-950" />
+          {/* DECK B REAL YOUTUBE PLAYER CONTAINER */}
+          <div
+            className={`overflow-hidden rounded-lg bg-black relative transition-all duration-150 ${
+              blendMode === 'side-by-side'
+                ? 'w-full h-full border border-amber-500/40'
+                : blendMode === 'focus-b'
+                ? 'absolute inset-0 z-10'
+                : blendMode === 'focus-a'
+                ? 'absolute inset-0 z-0 opacity-0 pointer-events-none'
+                : 'absolute inset-0 z-10'
+            }`}
+            style={{
+              opacity:
+                blendMode === 'alpha'
+                  ? Math.max(0.08, pos)
+                  : blendMode === 'screen'
+                  ? Math.max(0.15, pos)
+                  : 1,
+              mixBlendMode: blendMode === 'screen' ? 'screen' : 'normal',
+            }}
+          >
+            {/* The Real YouTube Player for Deck B */}
+            <div id="deck-b-player" className="w-full h-full pointer-events-auto" />
+
+            {/* Deck B HUD Banner */}
+            <div className="absolute top-2 right-2 z-10 pointer-events-none flex items-center gap-1.5">
+              <span className="px-2 py-0.5 rounded text-[10px] font-mono font-black tracking-wider uppercase bg-black/80 backdrop-blur border border-amber-500/50 text-amber-400">
+                DECK B {isPlayingB ? '· LIVE' : '· IDLE'}
+              </span>
+              {loopBActive && (
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-black/80 border border-purple-500/50 text-purple-300">
+                  LOOP ON
+                </span>
               )}
-              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-cyan-400 font-bold border border-cyan-500/40">
-                DECK A: {bpmA.toFixed(1)} BPM
-              </div>
             </div>
 
-            <div className="relative w-full h-full rounded-lg overflow-hidden border border-amber-500/40">
-              {trackB?.thumbnailUrl ? (
-                <img
-                  src={trackB.thumbnailUrl}
-                  alt={trackB.title}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full bg-neutral-950" />
-              )}
-              <div className="absolute bottom-2 right-2 px-2 py-0.5 rounded bg-black/80 text-[10px] font-mono text-amber-400 font-bold border border-amber-500/40">
-                DECK B: {bpmB.toFixed(1)} BPM
-              </div>
+            {/* Deck B Bottom Track Info Tag */}
+            <div className="absolute bottom-2 inset-x-2 z-10 pointer-events-none flex items-center justify-between bg-black/80 backdrop-blur px-2 py-1 rounded border border-neutral-800 text-[10px] font-mono">
+              <span className="text-white font-bold truncate max-w-[70%]">
+                {trackB ? trackB.title : 'Deck B Empty'}
+              </span>
+              <span className="text-amber-400 shrink-0 font-semibold">
+                {bpmB.toFixed(1)} BPM
+              </span>
             </div>
           </div>
-        )}
-
-        {/* CRT Scanline & Lens Vignette FX */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_transparent_40%,_black_90%)] pointer-events-none opacity-60" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/80 pointer-events-none" />
+        </div>
 
         {/* Center Live Reactive Audio Spectrum Bridge */}
         <div className="absolute top-3 inset-x-0 flex items-center justify-center gap-1 pointer-events-none z-20">
-          <div className="bg-black/75 backdrop-blur px-3 py-1 rounded-full border border-neutral-800 flex items-center gap-2">
+          <div className="bg-black/80 backdrop-blur px-3 py-1 rounded-full border border-neutral-800 flex items-center gap-2 shadow-lg">
             <span className="text-[10px] font-mono font-bold text-cyan-400">
               A: {weightA}%
             </span>
@@ -389,12 +352,12 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
           <div className="absolute bottom-3 inset-x-3 sm:inset-x-8 z-30 flex flex-col items-center justify-center pointer-events-none animate-fade-in">
             {/* If Deck A Vocal is singing */}
             {lyricLineA && (
-              <div className="w-full max-w-2xl bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl border border-cyan-500/40 text-center shadow-2xl mb-1 flex flex-col items-center">
+              <div className="w-full max-w-2xl bg-black/85 backdrop-blur-md px-4 py-2 rounded-xl border border-cyan-500/50 text-center shadow-2xl mb-1 flex flex-col items-center">
                 <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-cyan-400 uppercase tracking-widest mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
                   <span>VOCAL A · {trackA?.artist}</span>
                 </div>
-                <p className="text-sm sm:text-base md:text-lg font-mono font-black text-white tracking-wide drop-shadow-[0_2px_10px_rgba(6,182,212,0.8)]">
+                <p className="text-sm sm:text-base md:text-lg font-mono font-black text-white tracking-wide drop-shadow-[0_2px_10px_rgba(6,182,212,0.9)]">
                   "{lyricLineA}"
                 </p>
               </div>
@@ -402,18 +365,18 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
 
             {/* If Deck B Vocal is singing */}
             {lyricLineB && lyricLineB !== lyricLineA && (
-              <div className="w-full max-w-2xl bg-black/80 backdrop-blur-md px-4 py-2 rounded-xl border border-amber-500/40 text-center shadow-2xl flex flex-col items-center">
+              <div className="w-full max-w-2xl bg-black/85 backdrop-blur-md px-4 py-2 rounded-xl border border-amber-500/50 text-center shadow-2xl flex flex-col items-center">
                 <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold text-amber-400 uppercase tracking-widest mb-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                   <span>VOCAL B · {trackB?.artist}</span>
                 </div>
-                <p className="text-sm sm:text-base md:text-lg font-mono font-black text-white tracking-wide drop-shadow-[0_2px_10px_rgba(245,158,11,0.8)]">
+                <p className="text-sm sm:text-base md:text-lg font-mono font-black text-white tracking-wide drop-shadow-[0_2px_10px_rgba(245,158,11,0.9)]">
                   "{lyricLineB}"
                 </p>
               </div>
             )}
 
-            {/* Default prompt when instrumental / intro plays */}
+            {/* Standby indicator when intro/outro or instrumental */}
             {!lyricLineA && !lyricLineB && (
               <div className="bg-black/60 backdrop-blur px-3 py-1 rounded-full border border-neutral-800 text-[11px] font-mono text-neutral-400 flex items-center gap-1.5">
                 <Subtitles className="w-3 h-3 text-emerald-400" />
@@ -444,7 +407,7 @@ export const TopMashupVideoStage: React.FC<TopMashupVideoStageProps> = ({
             </div>
 
             <p className="text-xs font-mono text-neutral-400">
-              Paste song lyrics or rap verses below (one line per bar). The CC streamer will display them across the mashup screen in real time!
+              Paste song lyrics or rap verses below (one line per bar). The CC streamer will display them across the live video mashup screen in real time!
             </p>
 
             <textarea

@@ -79,18 +79,12 @@ export const Deck: React.FC<DeckProps> = ({
     <div className={`flex-1 flex flex-col bg-neutral-950 rounded-2xl border-2 ${accentBorder} p-3.5 sm:p-4 shadow-2xl gap-3.5 relative overflow-hidden group`}>
       {/* FULL DECK GUI VIDEO BACKGROUND: Fills the entire table area (cue/pause, spin record, timeline, faders) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        {/* Real YouTube Player mounted directly here to fill the entire deck GUI */}
-        <div
-          id={`deck-${state.id.toLowerCase()}-player`}
-          className="w-full h-full scale-125 object-cover pointer-events-none filter contrast-125 saturate-125 opacity-40 group-hover:opacity-55 transition-opacity duration-300"
-        />
-
-        {/* Fallback image when video is loading */}
+        {/* Track Video Artwork Backdrop filling the entire deck GUI */}
         {state.track?.thumbnailUrl && (
           <img
             src={state.track.thumbnailUrl}
             alt=""
-            className="absolute inset-0 w-full h-full object-cover opacity-20 filter contrast-125 mix-blend-screen pointer-events-none"
+            className="w-full h-full object-cover scale-110 pointer-events-none filter contrast-125 saturate-125 opacity-35 group-hover:opacity-50 transition-opacity duration-300"
           />
         )}
 

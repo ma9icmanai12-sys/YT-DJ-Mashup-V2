@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { DeckTrack, MashupPreset } from '../types/dj';
 import { MASHUP_PRESETS, POPULAR_TRACKS } from '../data/presets';
 import { extractYouTubeId } from '../services/youtube';
+import { searchYouTubeClient } from '../services/youtubeSearch';
 import { X, Search, Sparkles, Disc, Plus, Check, Music } from 'lucide-react';
 
 interface CrateModalProps {
@@ -41,12 +42,16 @@ export const CrateModal: React.FC<CrateModalProps> = ({
         const res = await fetch(`/api/search?q=${encodeURIComponent(searchQuery.trim())}`);
         if (res.ok) {
           const data = await res.json();
-          if (Array.isArray(data.results)) {
+          if (Array.isArray(data.results) && data.results.length > 0) {
             setLiveYtResults(data.results);
+            return;
           }
         }
-      } catch (err) {
-        console.warn('Crate live search failed', err);
+        const clientResults = await searchYouTubeClient(searchQuery.trim(), customTracks);
+        setLiveYtResults(clientResults);
+      } catch {
+        const clientResults = await searchYouTubeClient(searchQuery.trim(), customTracks);
+        setLiveYtResults(clientResults);
       } finally {
         setIsSearchingYt(false);
       }

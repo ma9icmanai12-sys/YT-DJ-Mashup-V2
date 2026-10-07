@@ -16,6 +16,7 @@ export interface DeckTrack {
   key: string;
   genre?: string;
   suggestedCue?: number;
+  durationFormatted?: string;
 }
 
 export interface DeckState {
