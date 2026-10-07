@@ -1,0 +1,7 @@
+{
+  "name": "DJ YouTube Mashup",
+  "description": "Professional dual-deck DJ mixing console and YouTube mashup studio with crossfader, BPM sync, vinyl scratch wheels, hot cues, loops, 3-band EQ, and sound FX pads.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
